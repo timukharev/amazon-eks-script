@@ -1,0 +1,37 @@
+pools:
+  applications:
+    capacityType: on-demand
+    instanceTypes:
+      - m6i.large
+      - m6i.xlarge
+      - m6a.large
+      - m6a.xlarge
+      - c6i.large
+      - c6i.xlarge
+    limits:
+      cpu: "96"
+      memory: 384Gi
+    expireAfter: 720h
+    disruption:
+      consolidationPolicy: WhenEmptyOrUnderutilized
+      consolidateAfter: 5m
+      budgets:
+        - nodes: "10%"
+  testing:
+    capacityType: spot
+    instanceTypes:
+      - m6i.large
+      - m6i.xlarge
+      - m6a.large
+      - m6a.xlarge
+      - c6i.large
+      - c6i.xlarge
+    limits:
+      cpu: "16"
+      memory: 64Gi
+    expireAfter: 720h
+    disruption:
+      consolidationPolicy: WhenEmptyOrUnderutilized
+      consolidateAfter: 1m
+      budgets:
+        - nodes: "100%"

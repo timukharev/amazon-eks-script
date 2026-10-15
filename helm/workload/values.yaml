@@ -1,0 +1,22 @@
+environment: preprod
+image: nginxinc/nginx-unprivileged:1.28-alpine
+replicas: 2
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 128Mi
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 65
+
+scheduledScaling:
+  enabled: false
+  timezone: null
+  start: null
+  end: null
+  peakReplicas: null

@@ -1,0 +1,102 @@
+{{- $env := required "environment is required" .Values.environment -}}
+{{- if not (has $env (list "production" "preprod" "testing")) -}}
+{{- fail "environment must be production, preprod, or testing" -}}
+{{- end -}}
+{{- if ne .Release.Namespace $env -}}
+{{- fail "release namespace must match environment" -}}
+{{- end -}}
+{{- $testing := eq $env "testing" -}}
+{{- $pool := ternary "testing" "applications" $testing -}}
+{{- $capacity := ternary "spot" "on-demand" $testing -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: workload
+      automountServiceAccountToken: false
+      priorityClassName: {{ ternary "production" "nonproduction" (eq $env "production") }}
+      terminationGracePeriodSeconds: 30
+      nodeSelector:
+        workload.example.com/pool: {{ $pool }}
+        karpenter.sh/capacity-type: {{ $capacity }}
+      tolerations:
+        - key: workload.example.com/pool
+          operator: Equal
+          value: {{ $pool }}
+          effect: NoSchedule
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ .Release.Name }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: http
+          image: {{ .Values.image | quote }}
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}

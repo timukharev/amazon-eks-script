@@ -1,0 +1,41 @@
+{{- if .Values.scheduledScaling.enabled }}
+{{- if not .Values.autoscaling.enabled }}
+{{- fail "scheduled scaling requires autoscaling.enabled=true" }}
+{{- end }}
+{{- $timezone := required "scheduledScaling.timezone is required" .Values.scheduledScaling.timezone }}
+{{- $start := required "scheduledScaling.start is required" .Values.scheduledScaling.start }}
+{{- $end := required "scheduledScaling.end is required" .Values.scheduledScaling.end }}
+{{- $peak := required "scheduledScaling.peakReplicas is required" .Values.scheduledScaling.peakReplicas }}
+{{- if eq $start $end }}
+{{- fail "scheduled scaling start and end must differ" }}
+{{- end }}
+{{- if or (lt (int $peak) (int .Values.autoscaling.minReplicas)) (gt (int $peak) (int .Values.autoscaling.maxReplicas)) }}
+{{- fail "scheduled peak replicas must be within autoscaling min/max" }}
+{{- end }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  scaleTargetRef:
+    name: {{ .Release.Name }}
+  minReplicaCount: {{ .Values.autoscaling.minReplicas }}
+  maxReplicaCount: {{ .Values.autoscaling.maxReplicas }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+  triggers:
+    - type: cron
+      metadata:
+        timezone: {{ $timezone | quote }}
+        start: {{ $start | quote }}
+        end: {{ $end | quote }}
+        desiredReplicas: {{ $peak | quote }}
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: {{ .Values.autoscaling.targetCPUUtilizationPercentage | quote }}
+{{- end }}

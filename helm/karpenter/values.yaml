@@ -1,0 +1,18 @@
+replicas: 2
+serviceAccount:
+  name: karpenter
+nodeSelector:
+  workload.example.com/pool: system
+tolerations:
+  - key: CriticalAddonsOnly
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+controller:
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi

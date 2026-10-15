@@ -1,0 +1,29 @@
+stages: [validate, test]
+render:
+  stage: validate
+  image:
+    name: alpine/helm:3.16.4
+    entrypoint: [""]
+  script:
+    - helm lint helm/workload --namespace preprod -f environments/preprod.yaml
+    - helm template sample helm/workload --namespace production -f environments/production.yaml > /dev/null
+    - helm template sample helm/workload --namespace preprod -f environments/preprod.yaml > /dev/null
+    - helm template sample helm/workload --namespace testing -f environments/testing.yaml > /dev/null
+
+load-test:
+  stage: test
+  image:
+    name: grafana/k6:0.57.0
+    entrypoint: [""]
+  when: manual
+  allow_failure: false
+  rules:
+    - if: '$CI_COMMIT_REF_PROTECTED == "true" && $CI_PIPELINE_SOURCE == "web"'
+  script:
+    - test -n "$LOAD_TEST_URL"
+    - k6 run --summary-export load-test-summary.json ci/load-test.js
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - load-test-summary.json

@@ -1,0 +1,16 @@
+{
+  "scope": "synthetic application-hosting example; not the source project or total AWS bill",
+  "currency": "USD",
+  "basis": "amortized",
+  "comparison_notes": "Synthetic equal-duration windows; identical workload and discount assumptions. No actual billing records.",
+  "before": {
+    "start": "2025-01-01",
+    "end_exclusive": "2025-01-31",
+    "amount": "1000.00"
+  },
+  "after": {
+    "start": "2025-02-01",
+    "end_exclusive": "2025-03-03",
+    "amount": "750.00"
+  }
+}

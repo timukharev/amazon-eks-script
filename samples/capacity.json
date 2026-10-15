@@ -1,0 +1,63 @@
+{
+  "source": "Synthetic arithmetic fixture; not deployed capacity or private project sizing. Excludes preprod during failure.",
+  "scenarios": [
+    {
+      "name": "baseline",
+      "productionDemand": {
+        "cpu": 24,
+        "memoryGi": 96,
+        "podSlots": 30,
+        "podIPs": 30
+      },
+      "usableCapacityByAZ": {
+        "zone-a": {
+          "cpu": 14,
+          "memoryGi": 56,
+          "podSlots": 20,
+          "podIPs": 20
+        },
+        "zone-b": {
+          "cpu": 14,
+          "memoryGi": 56,
+          "podSlots": 20,
+          "podIPs": 20
+        },
+        "zone-c": {
+          "cpu": 14,
+          "memoryGi": 56,
+          "podSlots": 20,
+          "podIPs": 20
+        }
+      }
+    },
+    {
+      "name": "peak",
+      "productionDemand": {
+        "cpu": 48,
+        "memoryGi": 192,
+        "podSlots": 60,
+        "podIPs": 60
+      },
+      "usableCapacityByAZ": {
+        "zone-a": {
+          "cpu": 28,
+          "memoryGi": 112,
+          "podSlots": 40,
+          "podIPs": 40
+        },
+        "zone-b": {
+          "cpu": 28,
+          "memoryGi": 112,
+          "podSlots": 40,
+          "podIPs": 40
+        },
+        "zone-c": {
+          "cpu": 28,
+          "memoryGi": 112,
+          "podSlots": 40,
+          "podIPs": 40
+        }
+      }
+    }
+  ]
+}

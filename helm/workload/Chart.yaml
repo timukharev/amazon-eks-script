@@ -1,0 +1,5 @@
+apiVersion: v2
+name: workload
+version: 0.1.0
+description: Synthetic HTTP workload with explicit pool selection and CPU scaling
+type: application

@@ -1,0 +1,14 @@
+environment: production
+replicas: 3
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 12
+  targetCPUUtilizationPercentage: 60
+
+scheduledScaling:
+  enabled: false
+  timezone: America/New_York
+  start: "0 17 * * *"
+  end: "0 22 * * *"
+  peakReplicas: 6
